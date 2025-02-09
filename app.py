@@ -2,13 +2,12 @@ import os
 import streamlit as st
 import tempfile
 from utils.document_handler import create_document_handler
-from utils.text_processor import normalize_text, search_terms, generate_summary, calculate_term_frequencies
+from utils.text_processor import normalize_text, search_terms, generate_summary
 from utils.export_handler import create_excel_export
 from utils.database import get_db_context, Document, SearchResult
 from utils.summarizer import TextSummarizer
 import pandas as pd
 from datetime import datetime
-from collections import Counter
 
 def get_or_create_document(db, filename, page_count):
     """Get existing document or create new one"""
@@ -54,7 +53,6 @@ def main():
         ):
             with st.spinner("Processing documents..."):
                 all_results = []
-                term_frequencies = Counter()
 
                 try:
                     with get_db_context() as db:
@@ -68,10 +66,6 @@ def main():
 
                                     # Extract text from document
                                     text_by_page = doc_handler.extract_text()
-
-                                    # Calculate term frequencies for this document
-                                    doc_frequencies = calculate_term_frequencies(text_by_page, search_terms_list)
-                                    term_frequencies.update(doc_frequencies)
 
                                     # Create or get document record
                                     doc = get_or_create_document(db, uploaded_file.name, len(text_by_page))
@@ -125,20 +119,6 @@ def main():
                     return
 
                 if all_results:
-                    # Display Term Frequency Visualization
-                    st.header("Search Term Frequency")
-                    st.caption("Visual representation of how often each search term appears across all documents.")
-
-                    freq_df = pd.DataFrame({
-                        'Term': list(term_frequencies.keys()),
-                        'Frequency': list(term_frequencies.values())
-                    }).sort_values('Frequency', ascending=True)
-
-                    # Create bar chart
-                    st.bar_chart(
-                        freq_df.set_index('Term')
-                    )
-
                     # Generate and display overall summary
                     st.header("Search Summary")
                     st.caption("An AI-generated summary of all search results, providing a quick overview of the key findings.")

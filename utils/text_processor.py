@@ -3,7 +3,6 @@ from nltk.tokenize import sent_tokenize
 import re
 import unicodedata
 import os
-from collections import Counter
 
 # Create NLTK data directory if it doesn't exist
 nltk_data_dir = os.path.join(os.path.expanduser('~'), 'nltk_data')
@@ -74,24 +73,6 @@ def search_terms(text_by_page, term):
                 results[page_num] = contexts
 
     return results
-
-def calculate_term_frequencies(text_by_page, terms):
-    """Calculate frequency of each search term across all pages"""
-    frequencies = Counter()
-
-    for term in terms:
-        normalized_term = normalize_text(term)
-        total_occurrences = 0
-
-        for page_text in text_by_page.values():
-            normalized_text = normalize_text(page_text)
-            # Count occurrences of the term in this page
-            occurrences = len(re.finditer(normalized_term, normalized_text))
-            total_occurrences += occurrences
-
-        frequencies[term] = total_occurrences
-
-    return frequencies
 
 def generate_summary(text, max_length=150):
     """Generate a brief summary of the context"""
