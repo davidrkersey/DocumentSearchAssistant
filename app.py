@@ -141,25 +141,20 @@ def main():
                         else:
                             st.warning("Could not generate summary. Please check the error logs for details.")
 
-                    # Display detailed results
-                    st.header("Detailed Results")
-                    st.caption("Detailed findings showing each occurrence of your search terms, including surrounding context and page numbers.")
-
+                    # Group results by search term and display in expandable sections
                     df = pd.DataFrame(all_results)
+                    grouped_results = df.groupby('Search Term')
 
-                    # Group results by search term for display
-                    for term in search_terms_list:
-                        term_results = df[df['Search Term'] == term]
-                        if not term_results.empty:
-                            st.subheader(f"Results for: {term}")
-                            for _, row in term_results.iterrows():
-                                # Add helper text before expander
-                                st.caption(f"Showing context from {row['Document']} - Page {row['Page']}")
-                                with st.expander(f"View Details"):
-                                    st.write("**Excerpt:**")
-                                    st.write(row['Excerpt'])
-                                    st.write("**Context Summary:**")
-                                    st.write(row['Summary'])
+                    for term, group in grouped_results:
+                        with st.expander(f"Results for: {term}"):
+                            st.write(f"Found {len(group)} matches")
+                            for _, row in group.iterrows():
+                                st.markdown(f"""
+                                **Document:** {row['Document']} (Page {row['Page']})  
+                                **Context:** {row['Excerpt']}  
+                                **Summary:** {row['Summary']}  
+                                ---
+                                """)
 
                     # Export to Excel with tooltip
                     excel_file = create_excel_export(df)
