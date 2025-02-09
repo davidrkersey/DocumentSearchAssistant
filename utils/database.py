@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, Float
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, Float, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.pool import QueuePool
@@ -58,8 +58,8 @@ def get_db():
     for attempt in range(max_retries):
         try:
             db = SessionLocal()
-            # Test the connection
-            db.execute("SELECT 1")
+            # Test the connection with properly formatted SQL
+            db.execute(text("SELECT 1"))
             yield db
         except Exception as e:
             if attempt == max_retries - 1:  # Last attempt
