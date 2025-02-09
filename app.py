@@ -28,24 +28,29 @@ def main():
     # Initialize summarizer
     summarizer = TextSummarizer()
 
-    # File upload section
+    # File upload section with tooltip
     uploaded_files = st.file_uploader(
         "Upload documents (PDF, Word, or Text)", 
         type=['pdf', 'docx', 'doc', 'txt'], 
-        accept_multiple_files=True
+        accept_multiple_files=True,
+        help="Upload one or more documents in PDF, Word, or Text format. The tool will process each document and make it searchable."
     )
 
-    # Search terms input
+    # Search terms input with tooltip
     search_terms_input = st.text_area(
         "Enter search terms (one per line)",
         height=100,
-        help="Enter each search term on a new line"
+        help="Enter the terms you want to search for in your documents. Put each term on a new line. The search is case-insensitive and will find variations of the terms."
     )
 
     if uploaded_files and search_terms_input:
         search_terms_list = [term.strip() for term in search_terms_input.split('\n') if term.strip()]
 
-        if st.button("Analyze Documents"):
+        # Analysis button with tooltip
+        if st.button(
+            "Analyze Documents",
+            help="Click to start processing your documents. This will search for your terms, generate summaries, and save the results."
+        ):
             with st.spinner("Processing documents..."):
                 all_results = []
 
@@ -116,6 +121,8 @@ def main():
                 if all_results:
                     # Generate and display overall summary
                     st.header("Search Summary")
+                    st.caption("An AI-generated summary of all search results, providing a quick overview of the key findings.")
+
                     with st.spinner("Generating summary..."):
                         overall_summary = summarizer.summarize_search_results(all_results)
                         if overall_summary:
@@ -136,6 +143,8 @@ def main():
 
                     # Display detailed results
                     st.header("Detailed Results")
+                    st.caption("Detailed findings showing each occurrence of your search terms, including surrounding context and page numbers.")
+
                     df = pd.DataFrame(all_results)
 
                     # Group results by search term for display
@@ -144,24 +153,30 @@ def main():
                         if not term_results.empty:
                             st.subheader(f"Results for: {term}")
                             for _, row in term_results.iterrows():
-                                with st.expander(f"Page {row['Page']} - {row['Document']}"):
+                                # Add helper text before expander
+                                st.caption(f"Showing context from {row['Document']} - Page {row['Page']}")
+                                with st.expander(f"View Details"):
                                     st.write("**Excerpt:**")
                                     st.write(row['Excerpt'])
                                     st.write("**Context Summary:**")
                                     st.write(row['Summary'])
 
-                    # Export to Excel
+                    # Export to Excel with tooltip
                     excel_file = create_excel_export(df)
                     st.download_button(
                         label="Download Results as Excel",
                         data=excel_file,
                         file_name="search_results.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        help="Download all search results in Excel format for offline analysis and sharing."
                     )
                 else:
                     st.warning("No matches found for the provided search terms.")
 
-    # Show previous searches
+    # Show previous searches section
+    st.header("Previous Search Results")
+    st.caption("Access the history of your previous searches and their results.")
+
     with st.expander("View Previous Search Results"):
         try:
             with get_db_context() as db:
