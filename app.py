@@ -1,6 +1,7 @@
+import os
 import streamlit as st
 import tempfile
-from utils.pdf_handler import extract_pdf_text
+from utils.document_handler import create_document_handler
 from utils.text_processor import normalize_text, search_terms, generate_summary
 from utils.export_handler import create_excel_export
 from utils.database import get_db, Document, SearchResult
@@ -28,8 +29,8 @@ def main():
 
     # File upload section
     uploaded_files = st.file_uploader(
-        "Upload PDF documents", 
-        type=['pdf'], 
+        "Upload documents (PDF, Word, or Text)", 
+        type=['pdf', 'docx', 'doc', 'txt'], 
         accept_multiple_files=True
     )
 
@@ -49,40 +50,48 @@ def main():
                 all_results = []
 
                 for uploaded_file in uploaded_files:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp_file:
                         tmp_file.write(uploaded_file.read())
 
-                        # Extract text from PDF
-                        text_by_page = extract_pdf_text(tmp_file.name)
+                        try:
+                            # Create appropriate document handler
+                            doc_handler = create_document_handler(tmp_file.name)
 
-                        # Create or get document record
-                        doc = get_or_create_document(db, uploaded_file.name, len(text_by_page))
+                            # Extract text from document
+                            text_by_page = doc_handler.extract_text()
 
-                        # Search for terms
-                        for term in search_terms_list:
-                            results = search_terms(text_by_page, term)
-                            if results:
-                                for page_num, excerpts in results.items():
-                                    for excerpt in excerpts:
-                                        context_summary = generate_summary(excerpt)
+                            # Create or get document record
+                            doc = get_or_create_document(db, uploaded_file.name, len(text_by_page))
 
-                                        # Store in database
-                                        search_result = SearchResult(
-                                            document_id=doc.id,
-                                            search_term=term,
-                                            page_number=page_num + 1,
-                                            excerpt=excerpt,
-                                            summary=context_summary
-                                        )
-                                        db.add(search_result)
+                            # Search for terms
+                            for term in search_terms_list:
+                                results = search_terms(text_by_page, term)
+                                if results:
+                                    for page_num, excerpts in results.items():
+                                        for excerpt in excerpts:
+                                            context_summary = generate_summary(excerpt)
 
-                                        all_results.append({
-                                            'Document': uploaded_file.name,
-                                            'Search Term': term,
-                                            'Page': page_num + 1,
-                                            'Excerpt': excerpt,
-                                            'Summary': context_summary
-                                        })
+                                            # Store in database
+                                            search_result = SearchResult(
+                                                document_id=doc.id,
+                                                search_term=term,
+                                                page_number=page_num + 1,
+                                                excerpt=excerpt,
+                                                summary=context_summary
+                                            )
+                                            db.add(search_result)
+
+                                            all_results.append({
+                                                'Document': uploaded_file.name,
+                                                'Search Term': term,
+                                                'Page': page_num + 1,
+                                                'Excerpt': excerpt,
+                                                'Summary': context_summary
+                                            })
+
+                        except Exception as e:
+                            st.error(f"Error processing {uploaded_file.name}: {str(e)}")
+                            continue
 
                 db.commit()
 
