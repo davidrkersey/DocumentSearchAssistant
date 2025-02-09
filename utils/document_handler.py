@@ -52,6 +52,7 @@ class WordHandler(DocumentHandler):
 
         try:
             doc = docx.Document(self.file_path)
+            paragraphs = [para for para in doc.paragraphs if para.text.strip()]
 
             # Word documents don't have explicit pages, so we'll group paragraphs
             # into virtual pages of roughly 3000 characters each
@@ -59,7 +60,7 @@ class WordHandler(DocumentHandler):
             current_length = 0
             page_num = 0
 
-            for para in doc.paragraphs:
+            for para in paragraphs:
                 para_text = self.clean_text(para.text)
                 if para_text:
                     current_page.append(para_text)
