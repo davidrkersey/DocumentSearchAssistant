@@ -146,15 +146,14 @@ def main():
                     grouped_results = df.groupby('Search Term')
 
                     for term, group in grouped_results:
-                        with st.expander(f"Results for: {term}"):
+                        with st.expander(f"**Results for: {term}**"):
                             st.write(f"Found {len(group)} matches")
                             for _, row in group.iterrows():
-                                st.markdown(f"""
-                                **Document:** {row['Document']} (Page {row['Page']})  
-                                **Context:** {row['Excerpt']}  
-                                **Summary:** {row['Summary']}  
-                                ---
-                                """)
+                                st.write("**Document:**", row['Document'])
+                                st.write("**Page:**", row['Page'])
+                                st.write("**Context:**")
+                                st.write(row['Excerpt'])
+                                st.markdown("---")
 
                     # Export to Excel with tooltip
                     excel_file = create_excel_export(df)
