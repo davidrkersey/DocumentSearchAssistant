@@ -121,8 +121,14 @@ def main():
                         if overall_summary:
                             if "API quota exceeded" in overall_summary:
                                 st.error(overall_summary)
+                                st.info("Please visit https://platform.openai.com/billing to check your credit balance and billing status.")
                             elif "API key not found" in overall_summary:
                                 st.warning(overall_summary)
+                            elif "rate limit" in overall_summary:
+                                st.warning(overall_summary)
+                                st.info("Please wait a moment before trying again.")
+                            elif "Error generating summary" in overall_summary:
+                                st.error(overall_summary)
                             else:
                                 st.write(overall_summary)
                         else:

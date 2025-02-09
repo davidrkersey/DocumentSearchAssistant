@@ -11,7 +11,7 @@ class TextSummarizer:
     def summarize_text(self, text: str, max_tokens: int = 150) -> Optional[str]:
         """Generate a concise summary of the provided text"""
         if not os.getenv("OPENAI_API_KEY"):
-            return None
+            return "OpenAI API key not found. Please provide a valid API key to enable summarization."
 
         try:
             response = self.client.chat.completions.create(
@@ -31,10 +31,15 @@ class TextSummarizer:
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
-            print(f"Error in summarization: {str(e)}")
-            if "quota" in str(e).lower():
-                return "OpenAI API quota exceeded. Please check your API key billing status."
-            return None
+            error_msg = str(e)
+            print(f"Error in summarization: {error_msg}")
+            if "rate limit" in error_msg.lower():
+                return "OpenAI API rate limit reached. Please try again in a few moments."
+            elif "quota" in error_msg.lower() or "billing" in error_msg.lower():
+                return "OpenAI API quota exceeded. Please ensure your account has available credits and billing is set up correctly."
+            elif "invalid" in error_msg.lower() and "api" in error_msg.lower():
+                return "Invalid OpenAI API key. Please provide a valid API key."
+            return f"Error generating summary: {error_msg}"
 
     def summarize_search_results(self, results: list) -> Optional[str]:
         """Generate a summary of search results"""
@@ -70,7 +75,12 @@ class TextSummarizer:
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
-            print(f"Error in search results summarization: {str(e)}")
-            if "quota" in str(e).lower():
-                return "OpenAI API quota exceeded. Please check your API key billing status."
-            return None
+            error_msg = str(e)
+            print(f"Error in search results summarization: {error_msg}")
+            if "rate limit" in error_msg.lower():
+                return "OpenAI API rate limit reached. Please try again in a few moments."
+            elif "quota" in error_msg.lower() or "billing" in error_msg.lower():
+                return "OpenAI API quota exceeded. Please ensure your account has available credits and billing is set up correctly."
+            elif "invalid" in error_msg.lower() and "api" in error_msg.lower():
+                return "Invalid OpenAI API key. Please provide a valid API key."
+            return f"Error generating summary: {error_msg}"
