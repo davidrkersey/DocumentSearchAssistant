@@ -5,6 +5,7 @@ from utils.document_handler import create_document_handler
 from utils.text_processor import normalize_text, search_terms, generate_summary
 from utils.export_handler import create_excel_export
 from utils.database import get_db_context, Document, SearchResult
+from utils.summarizer import TextSummarizer
 import pandas as pd
 from datetime import datetime
 
@@ -23,6 +24,9 @@ def main():
 
     st.title("Document Search & Analysis Tool")
     st.write("Upload documents and search for specific terms with context.")
+
+    # Initialize summarizer
+    summarizer = TextSummarizer()
 
     # File upload section
     uploaded_files = st.file_uploader(
@@ -110,7 +114,22 @@ def main():
                     return
 
                 if all_results:
-                    # Display results
+                    # Generate and display overall summary
+                    st.header("Search Summary")
+                    with st.spinner("Generating summary..."):
+                        overall_summary = summarizer.summarize_search_results(all_results)
+                        if overall_summary:
+                            if "API quota exceeded" in overall_summary:
+                                st.error(overall_summary)
+                            elif "API key not found" in overall_summary:
+                                st.warning(overall_summary)
+                            else:
+                                st.write(overall_summary)
+                        else:
+                            st.warning("Could not generate summary. Please check the error logs for details.")
+
+                    # Display detailed results
+                    st.header("Detailed Results")
                     df = pd.DataFrame(all_results)
 
                     # Group results by search term for display
