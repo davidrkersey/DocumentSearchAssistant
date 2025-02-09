@@ -141,6 +141,10 @@ def main():
                         else:
                             st.warning("Could not generate summary. Please check the error logs for details.")
 
+                    # Add prominent header for Search Results section
+                    st.header("Search Results")
+                    st.caption("Detailed findings organized by search term. Click to expand each section.")
+
                     # Group results by search term and display in expandable sections
                     df = pd.DataFrame(all_results)
                     grouped_results = df.groupby('Search Term')
