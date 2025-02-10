@@ -1,0 +1,7 @@
+*.pyc
+*.pyo
+__pycache__/
+*.log
+replit.nix
+uv.lock
+*.png

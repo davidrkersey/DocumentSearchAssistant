@@ -1,0 +1,36 @@
+# REMOVE THIS:
+# version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "8501:8501"
+    environment:
+      DATABASE_URL: "postgresql://postgres:password@db:5432/mydatabase"
+      OPENAI_API_KEY: ""
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "mydatabase"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  db_data:
