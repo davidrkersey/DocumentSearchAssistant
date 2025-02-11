@@ -33,7 +33,7 @@ def normalize_text(text):
 
 def get_context(text, term, context_size=200):
     """Extract context around a term"""
-    term_pos = text.lower().find(term.lower())
+    term_pos = normalize_text(text).lower().find(normalize_text(term).lower())
     if term_pos == -1:
         return None
 
